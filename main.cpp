@@ -14,6 +14,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include "Downloader.h"
+#include "Utils.h"
 
 int main(int argc, char** argv)
 {
@@ -23,29 +24,9 @@ int main(int argc, char** argv)
 	if (argc == 3)
 	{
 		std::string startdate = argv[1];
-		std::vector<int> dateParts;
-		std::string datePartStr;
-		std::istringstream ss(startdate);
-		while (std::getline(ss,datePartStr,'/'))
-		{
-			dateParts.push_back(std::stoi(datePartStr));
-		}
-		startdtm.tm_year = dateParts[2]-1900;
-		startdtm.tm_mon = dateParts[0]-1;
-		startdtm.tm_mday = dateParts[1];
-		std::time_t startts = std::mktime(&startdtm);
+		std::time_t startts = Utils::GetTimestamp(startdate, &startdtm);
 		std::string enddate = argv[2];
-		ss.clear();
-		ss.str(enddate);
-		dateParts.clear();
-		while (std::getline(ss,datePartStr,'/'))
-		{
-		    dateParts.push_back(std::stoi(datePartStr));
-		}
-		enddtm.tm_year = dateParts[2] - 1900;
-		enddtm.tm_mon = dateParts[0]-1;
-		enddtm.tm_mday = dateParts[1];
-		std::time_t endts = std::mktime(&enddtm);
+		std::time_t endts = Utils::GetTimestamp(enddate, &enddtm);
 		if (startts > endts)
 		{
 			std::cout << "start time is later than end time" << std::endl;
@@ -55,17 +36,7 @@ int main(int argc, char** argv)
 	else if (argc == 2)
 	{
 		std::string startdate = argv[1];
-		std::vector<int> dateParts;
-		std::string datePartStr;
-		std::istringstream ss(startdate);
-		while (std::getline(ss,datePartStr,'/'))
-		{
-			dateParts.push_back(std::stoi(datePartStr));
-		}
-		startdtm.tm_year = dateParts[2]-1900;
-		startdtm.tm_mon = dateParts[0]-1;
-		startdtm.tm_mday = dateParts[1];
-		std::time_t startts = std::mktime(&startdtm);
+		std::time_t startts = Utils::GetTimestamp(startdate, &startdtm);
 		std::time_t curts = std::time(nullptr);
 		enddtm = *std::localtime(&curts);
 		if (startts > curts)
