@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 			{
 				nlohmann::json::string_t gameType = gm.value()["gameType"];
 				nlohmann::json::string_t gameState = gm.value()["status"]["detailedState"];
-				if (gameType.compare("R") != 0 || gameState.compare("Final") != 0)
+				if (gameType.compare("R") != 0 || (gameState.compare("Final") != 0 && gameState.compare("Completed Early") != 0))
 				{
 					continue;
 				}
