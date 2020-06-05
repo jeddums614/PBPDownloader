@@ -8,17 +8,17 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+#include <map>
 #include <vector>
 #include <sstream>
 #include <filesystem>
 #include <fstream>
-#include <nlohmann/json.hpp>
-#include "Downloader.h"
+#include <thread>
 #include "Utils.h"
 
 int main(int argc, char** argv)
 {
-	std::string usage = "PBPDownloader <start date> <end date (optional)>";
+/*	std::string usage = "PBPDownloader <start date> <end date (optional)>";
 	std::tm startdtm = {0};
 	std::tm enddtm = {0};
 	if (argc == 3)
@@ -49,80 +49,70 @@ int main(int argc, char** argv)
 	{
 		std::cout << usage << std::endl;
 		std::exit(EXIT_FAILURE);
-	}
+	}*/
 
-	std::string baseurl = "http://statsapi.mlb.com";
-	std::tm curtm = startdtm;
-	while (curtm.tm_mon != enddtm.tm_mon || curtm.tm_mday != enddtm.tm_mday)
+	std::vector<std::pair<std::string, std::string>> dates = {
+		std::make_pair("03/20/2019", "03/22/2019"),
+	    std::make_pair("03/28/2019", "04/01/2019"),
+	    std::make_pair("04/01/2019", "04/08/2019"),
+		std::make_pair("04/08/2019", "04/15/2019"),
+	    std::make_pair("04/15/2019", "04/22/2019"),
+	    std::make_pair("04/22/2019", "04/29/2019"),
+		std::make_pair("04/29/2019", "05/01/2019"),
+		std::make_pair("05/01/2019", "05/08/2019"),
+		std::make_pair("05/08/2019", "05/15/2019"),
+		std::make_pair("05/15/2019", "05/22/2019"),
+		std::make_pair("05/22/2019", "05/29/2019"),
+		std::make_pair("05/29/2019", "06/01/2019"),
+	    std::make_pair("06/01/2019", "06/08/2019"),
+		std::make_pair("06/08/2019", "06/15/2019"),
+		std::make_pair("06/15/2019", "06/22/2019"),
+		std::make_pair("06/22/2019", "06/29/2019"),
+		std::make_pair("06/29/2019", "07/01/2019"),
+	    std::make_pair("07/01/2019", "07/08/2019"),
+		std::make_pair("07/11/2019", "07/18/2019"),
+		std::make_pair("07/18/2019", "07/25/2019"),
+		std::make_pair("07/25/2019", "08/01/2019"),
+		std::make_pair("08/01/2019", "08/08/2019"),
+		std::make_pair("08/08/2019", "08/15/2019"),
+		std::make_pair("08/15/2019", "08/22/2019"),
+		std::make_pair("08/22/2019", "08/29/2019"),
+		std::make_pair("08/29/2019", "09/01/2019"),
+		std::make_pair("09/01/2019", "09/08/2019"),
+		std::make_pair("09/08/2019", "09/15/2019"),
+		std::make_pair("09/15/2019", "09/22/2019"),
+		std::make_pair("09/22/2019", "09/29/2019"),
+		std::make_pair("09/29/2019", "09/30/2019")
+	};
+
+	std::vector<std::thread> threadVec;
+	for (auto& dt : dates)
 	{
-		static std::stringstream url;
-		url.seekp(std::ios::beg);
-		url << baseurl << "/api/v1/schedule/games/?sportId=1&date=";
-		if (curtm.tm_mon+1 < 10)
+		std::tm startdtm = {0};
+		std::tm enddtm = {0};
+		Utils::GetTimestamp(std::get<0>(dt), &startdtm);
+		if (!std::get<1>(dt).empty())
 		{
-			url << "0";
+			Utils::GetTimestamp(std::get<1>(dt), &enddtm);
 		}
-		url << curtm.tm_mon+1 << "/";
+		else
+		{
+			std::time_t curts = std::time(nullptr);
+			enddtm = *std::localtime(&curts);
+		}
 
-		if (curtm.tm_mday < 10)
-		{
-			url << "0";
-		}
-		url << curtm.tm_mday << "/" << curtm.tm_year+1900;
-		std::cout << url.str() << std::endl;
-		std::string jsonstr = Downloader::GetContent(url.str());
-		nlohmann::json j = nlohmann::json::parse(jsonstr);
-		for (auto& dt : j["dates"].items())
-		{
-			for (auto& gm: dt.value()["games"].items())
-			{
-				nlohmann::json::string_t gameType = gm.value()["gameType"];
-				nlohmann::json::string_t gameState = gm.value()["status"]["detailedState"];
-				if (gameType.compare("R") != 0 || (gameState.compare("Final") != 0 && gameState.compare("Completed Early") != 0))
-				{
-					continue;
-				}
-				nlohmann::json::string_t gameid = gm.value()["calendarEventID"];
-				nlohmann::json::string_t gamelink = gm.value()["link"];
-				static std::stringstream gameurl;
-				gameurl.seekp(std::ios::beg);
-				gameurl << baseurl << gamelink;
-				std::string gamejson = Downloader::GetContent(gameurl.str());
-				nlohmann::json gamejsonobj = nlohmann::json::parse(gamejson);
-				nlohmann::json::string_t altlink = gamejsonobj["link"];
-				static std::stringstream altgamelink;
-				altgamelink.seekp(std::ios::beg);
-				altgamelink << baseurl << altlink;
-				if (altgamelink.str().compare(gameurl.str()) != 0)
-				{
-					gamejson = Downloader::GetContent(altgamelink.str());
-					gamejsonobj = nlohmann::json::parse(gamejson);
-				}
-				static std::stringstream dirpath;
-				dirpath.seekp(std::ios::beg);
-				dirpath << "games_json/year_" << curtm.tm_year+1900 << "/month_";
-				if (curtm.tm_mon+1 < 10)
-			    {
-					dirpath << "0";
-			    }
-				dirpath << curtm.tm_mon+1 << "/day_";
-				if (curtm.tm_mday < 10)
-				{
-					dirpath << "0";
-				}
-				dirpath << curtm.tm_mday << "/" << gameid << "/";
-				if (!std::filesystem::exists(dirpath.str()))
-				{
-					std::filesystem::create_directories(dirpath.str());
-				}
-				std::ofstream ofs(dirpath.str()+"game.json");
-				ofs << gamejson << std::endl;
-				ofs.close();
-				std::cout << gameType << "," << gameState << "," << gameid << "," << gameurl.str() << std::endl;
-			}
-		}
-		++curtm.tm_mday;
-		std::mktime(&curtm);
+		threadVec.push_back(std::thread(Utils::Process,startdtm,enddtm));
 	}
+
+	// Iterate over the thread vector
+	for (std::thread & th : threadVec)
+	{
+		// If thread Object is Joinable then Join that thread.
+		if (th.joinable())
+		{
+			th.join();
+		}
+	}
+
 	return 0;
 }

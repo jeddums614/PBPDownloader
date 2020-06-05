@@ -18,6 +18,7 @@ public:
 	Utils(const Utils &) = delete;
 	~Utils() = delete;
 	static std::time_t GetTimestamp(const std::string & datestr, std::tm* tmOut);
+	static void Process(std::tm start, std::tm end);
 };
 
 
