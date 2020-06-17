@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <fstream>
 #include <thread>
+#include <optional>
 #include "Utils.h"
 
 int main(int argc, char** argv)
@@ -51,7 +52,7 @@ int main(int argc, char** argv)
 		std::exit(EXIT_FAILURE);
 	}*/
 
-	std::vector<std::pair<std::string, std::string>> dates = {
+	std::vector<std::pair<std::string, std::optional<std::string>>> dates = {
 		std::make_pair("03/20/2019", "03/22/2019"),
 	    std::make_pair("03/28/2019", "04/01/2019"),
 	    std::make_pair("04/01/2019", "04/08/2019"),
@@ -91,9 +92,9 @@ int main(int argc, char** argv)
 		std::tm startdtm = {0};
 		std::tm enddtm = {0};
 		Utils::GetTimestamp(std::get<0>(dt), &startdtm);
-		if (!std::get<1>(dt).empty())
+		if (std::get<1>(dt).has_value())
 		{
-			Utils::GetTimestamp(std::get<1>(dt), &enddtm);
+			Utils::GetTimestamp(std::get<1>(dt).value(), &enddtm);
 		}
 		else
 		{

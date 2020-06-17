@@ -28,7 +28,7 @@ std::string Downloader::GetContent(const std::string & url)
 	    CURLcode res = curl_easy_perform(curl);
 	    if (res != CURLE_OK)
 	    {
-	    	std::cout << "Unable to retrieve webpage: " << res << std::endl;
+	    	std::cout << "Unable to retrieve webpage " << url << ": " << res << std::endl;
 	    	curl_easy_cleanup(curl);
 	    	std::exit(EXIT_FAILURE);
 	    }
