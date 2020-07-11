@@ -16,42 +16,10 @@
 #include <thread>
 #include <optional>
 #include "Utils.h"
+#include "ThreadSafeMap.h"
 
 int main(int argc, char** argv)
 {
-/*	std::string usage = "PBPDownloader <start date> <end date (optional)>";
-	std::tm startdtm = {0};
-	std::tm enddtm = {0};
-	if (argc == 3)
-	{
-		std::string startdate = argv[1];
-		std::time_t startts = Utils::GetTimestamp(startdate, &startdtm);
-		std::string enddate = argv[2];
-		std::time_t endts = Utils::GetTimestamp(enddate, &enddtm);
-		if (startts > endts)
-		{
-			std::cout << "start time is later than end time" << std::endl;
-			std::exit(EXIT_FAILURE);
-		}
-	}
-	else if (argc == 2)
-	{
-		std::string startdate = argv[1];
-		std::time_t startts = Utils::GetTimestamp(startdate, &startdtm);
-		std::time_t curts = std::time(nullptr);
-		enddtm = *std::localtime(&curts);
-		if (startts > curts)
-		{
-			std::cout << "start time is later than end time" << std::endl;
-			std::exit(EXIT_FAILURE);
-		}
-	}
-	else
-	{
-		std::cout << usage << std::endl;
-		std::exit(EXIT_FAILURE);
-	}*/
-
 	std::vector<std::pair<std::string, std::optional<std::string>>> dates = {
 		std::make_pair("03/20/2019", "03/22/2019"),
 	    std::make_pair("03/28/2019", "04/01/2019"),
@@ -86,6 +54,7 @@ int main(int argc, char** argv)
 		std::make_pair("09/29/2019", "09/30/2019")
 	};
 
+	ThreadSafeMap<std::string, int> gameIds;
 	std::vector<std::thread> threadVec;
 	for (auto& dt : dates)
 	{
@@ -102,7 +71,7 @@ int main(int argc, char** argv)
 			enddtm = *std::localtime(&curts);
 		}
 
-		threadVec.push_back(std::thread(Utils::Process,startdtm,enddtm));
+		threadVec.push_back(std::thread(Utils::Process,startdtm,enddtm, std::ref(gameIds)));
 	}
 
 	// Iterate over the thread vector

@@ -11,6 +11,8 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <chrono>
+#include <thread>
 #include "Downloader.h"
 #include "Utils.h"
 
@@ -30,7 +32,7 @@ std::time_t Utils::GetTimestamp(const std::string & datestr, std::tm *tmOut)
 	return tsval;
 }
 
-void Utils::Process(std::tm start, std::tm end)
+void Utils::Process(std::tm start, std::tm end, ThreadSafeMap<std::string, int> & ids)
 {
 	const std::string baseurl = "http://statsapi.mlb.com";
 	std::tm curtm = start;
@@ -64,6 +66,39 @@ void Utils::Process(std::tm start, std::tm end)
 					continue;
 				}
 				nlohmann::json::string_t gameid = gm.value()["calendarEventID"];
+
+				std::size_t ix = 0, inner = 0;
+				int cnt = 0;
+				inner = gameid.find("-");
+				while (cnt < 2 && inner != std::string::npos)
+				{
+					ix = inner;
+					++cnt;
+					++inner;
+					inner = gameid.find("-",inner);
+				}
+
+				bool skip = false;
+				if (cnt == 2)
+				{
+					std::string strId = gameid.substr(0,ix);
+					std::cout << "strId = " << strId << std::endl;
+					if (ids.DoesKeyExist(strId))
+					{
+						std::cout << "skipping " << gameid << std::endl;
+						skip = true;
+					}
+					else
+					{
+						ids.set(strId,1);
+					}
+				}
+
+				if (skip)
+				{
+					continue;
+				}
+
 				nlohmann::json::string_t gamelink = gm.value()["link"];
 				std::stringstream gameurl;
 				gameurl.str(std::string());
@@ -100,6 +135,7 @@ void Utils::Process(std::tm start, std::tm end)
 				ofs << gamejson << std::endl;
 				ofs.close();
 				std::cout << gameType << "," << gameState << "," << gameid << "," << gameurl.str() << std::endl;
+				std::this_thread::sleep_for(std::chrono::seconds(1));
 			}
 		}
 		++curtm.tm_mday;
