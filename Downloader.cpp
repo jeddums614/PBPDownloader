@@ -22,16 +22,16 @@ std::string Downloader::GetContent(const std::string & url)
 
 	if (curl)
 	{
-		curl_easy_setopt(curl,CURLOPT_URL,url.c_str());
-		curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,WriteCallback);
-		curl_easy_setopt(curl,CURLOPT_WRITEDATA,&content);
-	    CURLcode res = curl_easy_perform(curl);
-	    if (res != CURLE_OK)
-	    {
-	    	std::cout << "Unable to retrieve webpage " << url << ": " << res << std::endl;
-	    	curl_easy_cleanup(curl);
-	    	std::exit(EXIT_FAILURE);
-	    }
+		CURLcode res;
+		do
+		{
+			curl_easy_setopt(curl,CURLOPT_URL,url.c_str());
+			curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,WriteCallback);
+			curl_easy_setopt(curl,CURLOPT_WRITEDATA,&content);
+		    res = curl_easy_perform(curl);
+		}
+		while (res != CURLE_OK);
+
 	    curl_easy_cleanup(curl);
 	}
 
