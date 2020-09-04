@@ -20,39 +20,49 @@
 
 int main(int argc, char** argv)
 {
-	std::vector<std::pair<std::string, std::optional<std::string>>> dates = {
-		std::make_pair("03/20/2019", "03/22/2019"),
-	    std::make_pair("03/28/2019", "04/01/2019"),
-	    std::make_pair("04/01/2019", "04/08/2019"),
-		std::make_pair("04/08/2019", "04/15/2019"),
-	    std::make_pair("04/15/2019", "04/22/2019"),
-	    std::make_pair("04/22/2019", "04/29/2019"),
-		std::make_pair("04/29/2019", "05/01/2019"),
-		std::make_pair("05/01/2019", "05/08/2019"),
-		std::make_pair("05/08/2019", "05/15/2019"),
-		std::make_pair("05/15/2019", "05/22/2019"),
-		std::make_pair("05/22/2019", "05/29/2019"),
-		std::make_pair("05/29/2019", "06/01/2019"),
-	    std::make_pair("06/01/2019", "06/08/2019"),
-		std::make_pair("06/08/2019", "06/15/2019"),
-		std::make_pair("06/15/2019", "06/22/2019"),
-		std::make_pair("06/22/2019", "06/29/2019"),
-		std::make_pair("06/29/2019", "07/01/2019"),
-	    std::make_pair("07/01/2019", "07/08/2019"),
-		std::make_pair("07/11/2019", "07/18/2019"),
-		std::make_pair("07/18/2019", "07/25/2019"),
-		std::make_pair("07/25/2019", "08/01/2019"),
-		std::make_pair("08/01/2019", "08/08/2019"),
-		std::make_pair("08/08/2019", "08/15/2019"),
-		std::make_pair("08/15/2019", "08/22/2019"),
-		std::make_pair("08/22/2019", "08/29/2019"),
-		std::make_pair("08/29/2019", "09/01/2019"),
-		std::make_pair("09/01/2019", "09/08/2019"),
-		std::make_pair("09/08/2019", "09/15/2019"),
-		std::make_pair("09/15/2019", "09/22/2019"),
-		std::make_pair("09/22/2019", "09/29/2019"),
-		std::make_pair("09/29/2019", "09/30/2019")
-	};
+	if (argc == 1)
+	{
+		std::string usage = "PBPDownloader dates.txt";
+		std::cout << usage << std::endl;
+		std::exit(-322);
+	}
+
+	if (!std::filesystem::exists(argv[1]))
+	{
+		std::string errormsg = "dates.txt does not exist";
+		std::cout << errormsg << std::endl;
+		std::exit(-422);
+	}
+
+	std::vector<std::pair<std::string, std::optional<std::string>>> dates;
+	std::ifstream ifs(argv[1]);
+	std::string line;
+	while (std::getline(ifs, line))
+	{
+		std::stringstream ss{line};
+		std::string ssline, strstartdt = "", strenddt = "";
+		while (std::getline(ss, ssline, ' '))
+		{
+			if (strstartdt.empty())
+			{
+				strstartdt = ssline;
+			}
+			else if (strenddt.empty())
+			{
+				strenddt = ssline;
+			}
+		}
+
+		if (!strenddt.empty())
+		{
+			dates.push_back(std::make_pair(strstartdt, strenddt));
+		}
+		else
+		{
+			dates.push_back(std::make_pair(strstartdt, std::nullopt));
+		}
+	}
+	ifs.close();
 
 	ThreadSafeMap<std::string, int> gameIds;
 	std::vector<std::thread> threadVec;
