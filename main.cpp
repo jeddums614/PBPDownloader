@@ -66,7 +66,6 @@ int main(int argc, char** argv)
 	ifs.close();
 
 	ThreadSafeMap<std::string, int> gameIds;
-	std::vector<std::thread> threadVec;
 	unsigned int numThreads = std::thread::hardware_concurrency();
 	if (numThreads == 0)
 	{
@@ -127,33 +126,6 @@ int main(int argc, char** argv)
 			}
 		}
 	}
-	/*for (auto& dt : dates)
-	{
-		std::tm startdtm = {0};
-		std::tm enddtm = {0};
-		Utils::GetTimestamp(std::get<0>(dt), &startdtm);
-		if (std::get<1>(dt).has_value())
-		{
-			Utils::GetTimestamp(std::get<1>(dt).value(), &enddtm);
-		}
-		else
-		{
-			std::time_t curts = std::time(nullptr);
-			enddtm = *std::localtime(&curts);
-		}
-
-		threadVec.push_back(std::thread(Utils::Process,startdtm,enddtm, std::ref(gameIds)));
-	}
-
-	// Iterate over the thread vector
-	for (std::thread & th : threadVec)
-	{
-		// If thread Object is Joinable then Join that thread.
-		if (th.joinable())
-		{
-			th.join();
-		}
-	}*/
 
 	return 0;
 }
