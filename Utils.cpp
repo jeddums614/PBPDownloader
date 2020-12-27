@@ -13,6 +13,7 @@
 #include <fstream>
 #include <chrono>
 #include <thread>
+#include <iomanip>
 #include "Downloader.h"
 #include "Utils.h"
 
@@ -132,7 +133,8 @@ void Utils::Process(std::tm start, std::tm end, ThreadSafeMap<std::string, int> 
 					std::filesystem::create_directories(dirpath.str());
 				}
 				std::ofstream ofs(dirpath.str()+"game.json");
-				ofs << gamejson << std::endl;
+				//ofs << std::setw(4) << gamejson << std::endl;
+				ofs << gamejsonobj.dump(4) << std::endl;
 				ofs.close();
 				std::cout << gameType << "," << gameState << "," << gameid << "," << gameurl.str() << std::endl;
 				std::this_thread::sleep_for(std::chrono::seconds(1));
