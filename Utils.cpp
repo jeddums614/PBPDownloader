@@ -133,7 +133,6 @@ void Utils::Process(std::tm start, std::tm end, ThreadSafeMap<std::string, int> 
 					std::filesystem::create_directories(dirpath.str());
 				}
 				std::ofstream ofs(dirpath.str()+"game.json");
-				//ofs << std::setw(4) << gamejson << std::endl;
 				ofs << gamejsonobj.dump(4) << std::endl;
 				ofs.close();
 				std::cout << gameType << "," << gameState << "," << gameid << "," << gameurl.str() << std::endl;
