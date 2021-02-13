@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include "Utils.h"
 #include "ThreadSafeMap.h"
+#include "ThreadPool.h"
 
 int main(int argc, char** argv)
 {
@@ -72,59 +73,29 @@ int main(int argc, char** argv)
 		numThreads = sysconf(_SC_NPROCESSORS_ONLN);
 	}
 
-	for (std::size_t i = 0; i < dates.size(); i+=numThreads)
-	{
-		std::vector<std::thread> threadVec;
-		if ((dates.size()-i) >= numThreads)
+	ThreadPool tp;
+	std::vector<std::future<void>> results;
+
+	for (std::size_t i = 0; i < dates.size(); ++i) {
+		std::pair<std::string, std::optional<std::string>> dt = dates[i];
+		std::tm startdtm = {0};
+		std::tm enddtm = {0};
+		Utils::GetTimestamp(std::get<0>(dt), &startdtm);
+		if (std::get<1>(dt).has_value())
 		{
-			for (std::size_t t = 0; t < numThreads; ++t)
-			{
-				std::pair<std::string, std::optional<std::string>> dt = dates[i+t];
-				std::tm startdtm = {0};
-				std::tm enddtm = {0};
-				Utils::GetTimestamp(std::get<0>(dt), &startdtm);
-				if (std::get<1>(dt).has_value())
-				{
-					Utils::GetTimestamp(std::get<1>(dt).value(), &enddtm);
-				}
-				else
-				{
-					std::time_t curts = std::time(nullptr);
-					enddtm = *std::localtime(&curts);
-				}
-				threadVec.push_back(std::thread(Utils::Process,startdtm,enddtm, std::ref(gameIds)));
-			}
+			Utils::GetTimestamp(std::get<1>(dt).value(), &enddtm);
 		}
 		else
 		{
-			for (std::size_t j = 0; j < (dates.size()-i); ++j)
-			{
-				std::pair<std::string, std::optional<std::string>> dt = dates[i+j];
-				std::tm startdtm = {0};
-				std::tm enddtm = {0};
-				Utils::GetTimestamp(std::get<0>(dt), &startdtm);
-				if (std::get<1>(dt).has_value())
-				{
-					Utils::GetTimestamp(std::get<1>(dt).value(), &enddtm);
-				}
-				else
-				{
-					std::time_t curts = std::time(nullptr);
-					enddtm = *std::localtime(&curts);
-				}
-				threadVec.push_back(std::thread(Utils::Process,startdtm,enddtm, std::ref(gameIds)));
-			}
+			std::time_t curts = std::time(nullptr);
+			enddtm = *std::localtime(&curts);
 		}
 
-		// Iterate over the thread vector
-		for (std::thread & th : threadVec)
-		{
-			// If thread Object is Joinable then Join that thread.
-			if (th.joinable())
-			{
-				th.join();
-			}
-		}
+		results.emplace_back(tp.enqueue([startdtm,enddtm,&gameIds](){Utils::Process(startdtm,enddtm,gameIds);}));
+	}
+
+	for (auto& res : results) {
+		res.get();
 	}
 
 	return 0;

@@ -33,7 +33,7 @@ std::time_t Utils::GetTimestamp(const std::string & datestr, std::tm *tmOut)
 	return tsval;
 }
 
-void Utils::Process(std::tm start, std::tm end, ThreadSafeMap<std::string, int> & ids)
+void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<std::string, int> & ids)
 {
 	const std::string baseurl = "http://statsapi.mlb.com";
 	std::tm curtm = start;
