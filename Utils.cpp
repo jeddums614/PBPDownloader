@@ -136,7 +136,6 @@ void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<st
 				ofs << gamejsonobj.dump(4) << std::endl;
 				ofs.close();
 				std::cout << gameType << "," << gameState << "," << gameid << "," << gameurl.str() << std::endl;
-				std::this_thread::sleep_for(std::chrono::seconds(1));
 			}
 		}
 		++curtm.tm_mday;
