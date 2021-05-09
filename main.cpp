@@ -16,55 +16,74 @@
 #include <thread>
 #include <optional>
 #include <unistd.h>
+#include <cstring>
+#include <ctime>
 #include "Utils.h"
 #include "ThreadSafeMap.h"
 #include "ThreadPool.h"
 
 int main(int argc, char** argv)
 {
-	if (argc == 1)
+	if (argc > 2)
 	{
 		std::string usage = "PBPDownloader dates.txt";
 		std::cout << usage << std::endl;
 		std::exit(-322);
 	}
 
-	if (!std::filesystem::exists(argv[1]))
-	{
-		std::string errormsg = "dates.txt does not exist";
-		std::cout << errormsg << std::endl;
-		std::exit(-422);
-	}
-
 	std::vector<std::pair<std::string, std::optional<std::string>>> dates;
-	std::ifstream ifs(argv[1]);
-	std::string line;
-	while (std::getline(ifs, line))
-	{
-		std::stringstream ss{line};
-		std::string ssline, strstartdt = "", strenddt = "";
-		while (std::getline(ss, ssline, ' '))
-		{
-			if (strstartdt.empty())
-			{
-				strstartdt = ssline;
-			}
-			else if (strenddt.empty())
-			{
-				strenddt = ssline;
-			}
+	if (argc == 2) {
+		if (std::string(argv[1]).find("dates.txt") == std::string::npos) {
+			std::string usage = "PBPDownloader dates.txt";
+			std::cout << usage << std::endl;
+			std::exit(-322);
 		}
 
-		if (!strenddt.empty())
+		if (!std::filesystem::exists(argv[1]))
 		{
-			dates.push_back(std::make_pair(strstartdt, strenddt));
+			std::string errormsg = "dates.txt does not exist";
+			std::cout << errormsg << std::endl;
+			std::exit(-422);
 		}
-		else
+
+		std::ifstream ifs(argv[1]);
+		std::string line;
+		while (std::getline(ifs, line))
 		{
-			dates.push_back(std::make_pair(strstartdt, std::nullopt));
+			std::stringstream ss{line};
+			std::string ssline, strstartdt = "", strenddt = "";
+			while (std::getline(ss, ssline, ' '))
+			{
+				if (strstartdt.empty())
+				{
+					strstartdt = ssline;
+				}
+				else if (strenddt.empty())
+				{
+					strenddt = ssline;
+				}
+			}
+
+			if (!strenddt.empty())
+			{
+				dates.push_back(std::make_pair(strstartdt, strenddt));
+			}
+			else
+			{
+				dates.push_back(std::make_pair(strstartdt, std::nullopt));
+			}
 		}
+		ifs.close();
 	}
-	ifs.close();
+	else {
+		std::chrono::system_clock::time_point cur = std::chrono::system_clock::now();
+		std::time_t tmptt = std::chrono::system_clock::to_time_t(cur);
+		std::tm* ptm = std::localtime(&tmptt);
+		--ptm->tm_mday;
+		std::mktime(ptm);
+		std::string yesterdaystr = ((ptm->tm_mon+1) < 10 ? "0" : "") + std::to_string(ptm->tm_mon+1) + "/" + (ptm->tm_mday < 10 ? "0" : "") + std::to_string(ptm->tm_mday) + "/" + std::to_string(ptm->tm_year+1900);
+		dates.push_back(std::make_pair(yesterdaystr, std::nullopt));
+	}
 
 	ThreadSafeMap<std::string, int> gameIds;
 	unsigned int numThreads = std::thread::hardware_concurrency();
