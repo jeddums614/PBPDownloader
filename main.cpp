@@ -33,16 +33,9 @@ int main(int argc, char** argv)
 
 	std::vector<std::pair<std::string, std::optional<std::string>>> dates;
 	if (argc == 2) {
-		if (std::string(argv[1]).find("dates.txt") == std::string::npos) {
-			std::string usage = "PBPDownloader dates.txt";
-			std::cout << usage << std::endl;
-			std::exit(-322);
-		}
-
 		if (!std::filesystem::exists(argv[1]))
 		{
-			std::string errormsg = "dates.txt does not exist";
-			std::cout << errormsg << std::endl;
+			std::cout << argv[1] << " does not exist" << std::endl;
 			std::exit(-422);
 		}
 
