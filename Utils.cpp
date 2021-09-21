@@ -105,37 +105,49 @@ void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<st
 				gameurl.str(std::string());
 				gameurl << baseurl << gamelink;
 				std::string gamejson = Downloader::GetContent(gameurl.str());
-				nlohmann::json gamejsonobj = nlohmann::json::parse(gamejson);
-				nlohmann::json::string_t altlink = gamejsonobj["link"];
-				std::stringstream altgamelink;
-				altgamelink.str(std::string());
-				altgamelink << baseurl << altlink;
-				if (altgamelink.str().compare(gameurl.str()) != 0)
-				{
-					gamejson = Downloader::GetContent(altgamelink.str());
-					gamejsonobj = nlohmann::json::parse(gamejson);
+				nlohmann::json gamejsonobj;
+				try {
+				    gamejsonobj = nlohmann::json::parse(gamejson);
 				}
-				std::stringstream dirpath;
-				dirpath.str(std::string());
-				dirpath << "games_json/year_" << curtm.tm_year+1900 << "/month_";
-				if (curtm.tm_mon+1 < 10)
-			    {
-					dirpath << "0";
-			    }
-				dirpath << curtm.tm_mon+1 << "/day_";
-				if (curtm.tm_mday < 10)
-				{
-					dirpath << "0";
+				catch (nlohmann::json::parse_error & e) {
+					std::cout << "url: " << gameurl.str() << '\n'
+					          << "message: " << e.what() << '\n'
+			                  << "exception id: " << e.id << '\n'
+			                  << "byte position of error: " << e.byte << std::endl;
 				}
-				dirpath << curtm.tm_mday << "/" << gameid << "/";
-				if (!std::filesystem::exists(dirpath.str()))
-				{
-					std::filesystem::create_directories(dirpath.str());
+
+				if (!gamejsonobj.empty()) {
+					nlohmann::json::string_t altlink = gamejsonobj["link"];
+					std::stringstream altgamelink;
+					altgamelink.str(std::string());
+					altgamelink << baseurl << altlink;
+					if (altgamelink.str().compare(gameurl.str()) != 0)
+					{
+						gamejson = Downloader::GetContent(altgamelink.str());
+						gamejsonobj = nlohmann::json::parse(gamejson);
+					}
+					std::stringstream dirpath;
+					dirpath.str(std::string());
+					dirpath << "games_json/year_" << curtm.tm_year+1900 << "/month_";
+					if (curtm.tm_mon+1 < 10)
+					{
+						dirpath << "0";
+					}
+					dirpath << curtm.tm_mon+1 << "/day_";
+					if (curtm.tm_mday < 10)
+					{
+						dirpath << "0";
+					}
+					dirpath << curtm.tm_mday << "/" << gameid << "/";
+					if (!std::filesystem::exists(dirpath.str()))
+					{
+						std::filesystem::create_directories(dirpath.str());
+					}
+					std::ofstream ofs(dirpath.str()+"game.json");
+					ofs << gamejsonobj.dump(4) << std::endl;
+					ofs.close();
+					std::cout << gameType << "," << gameState << "," << gameid << "," << gameurl.str() << std::endl;
 				}
-				std::ofstream ofs(dirpath.str()+"game.json");
-				ofs << gamejsonobj.dump(4) << std::endl;
-				ofs.close();
-				std::cout << gameType << "," << gameState << "," << gameid << "," << gameurl.str() << std::endl;
 			}
 		}
 		++curtm.tm_mday;
