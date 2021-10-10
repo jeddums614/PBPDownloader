@@ -100,6 +100,13 @@ void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<st
 					continue;
 				}
 
+				int seriesGmNumber = std::numeric_limits<int>::min();
+				if (gm.value().find("seriesGameNumber") != gm.value().end())
+				{
+					seriesGmNumber = gm.value()["seriesGameNumber"];
+					std::cout << "series gm = " << seriesGmNumber << std::endl;
+				}
+
 				nlohmann::json::string_t gamelink = gm.value()["link"];
 				std::stringstream gameurl;
 				gameurl.str(std::string());
@@ -126,6 +133,12 @@ void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<st
 						gamejson = Downloader::GetContent(altgamelink.str());
 						gamejsonobj = nlohmann::json::parse(gamejson);
 					}
+
+					if (seriesGmNumber > 0)
+					{
+					    gamejsonobj["gameData"]["game"]["seriesGameNumber"] = seriesGmNumber;
+					}
+
 					std::stringstream dirpath;
 					dirpath.str(std::string());
 					dirpath << "games_json/year_" << curtm.tm_year+1900 << "/month_";
