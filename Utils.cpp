@@ -107,6 +107,11 @@ void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<st
 					std::cout << "series gm = " << seriesGmNumber << std::endl;
 				}
 
+				int numGamesInSeries = std::numeric_limits<int>::min();
+				if (gm.value().find("gamesInSeries") != gm.value().end()) {
+					numGamesInSeries = gm.value()["gamesInSeries"];
+				}
+
 				nlohmann::json::string_t gamelink = gm.value()["link"];
 				std::stringstream gameurl;
 				gameurl.str(std::string());
@@ -137,6 +142,11 @@ void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<st
 					if (seriesGmNumber > 0)
 					{
 					    gamejsonobj["gameData"]["game"]["seriesGameNumber"] = seriesGmNumber;
+					}
+
+					if (numGamesInSeries > 0)
+					{
+						gamejsonobj["gameData"]["game"]["gamesInSeries"] = numGamesInSeries;
 					}
 
 					std::stringstream dirpath;
