@@ -112,6 +112,9 @@ void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<st
 					numGamesInSeries = gm.value()["gamesInSeries"];
 				}
 
+				int awayTeamSeriesNumber = gm.value()["teams"]["away"]["seriesNumber"];
+				int homeTeamSeriesNumber = gm.value()["teams"]["home"]["seriesNumber"];
+
 				nlohmann::json::string_t gamelink = gm.value()["link"];
 				std::stringstream gameurl;
 				gameurl.str(std::string());
@@ -148,6 +151,9 @@ void Utils::Process(const std::tm & start, const std::tm & end, ThreadSafeMap<st
 					{
 						gamejsonobj["gameData"]["game"]["gamesInSeries"] = numGamesInSeries;
 					}
+
+					gamejsonobj["gameData"]["teams"]["away"]["seriesNumber"] = awayTeamSeriesNumber;
+					gamejsonobj["gameData"]["teams"]["home"]["seriesNumber"] = homeTeamSeriesNumber;
 
 					std::stringstream dirpath;
 					dirpath.str(std::string());
