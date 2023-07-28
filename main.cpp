@@ -74,8 +74,10 @@ int main(int argc, char** argv)
 		std::tm* ptm = std::localtime(&tmptt);
 		--ptm->tm_mday;
 		std::mktime(ptm);
-		std::string yesterdaystr = ((ptm->tm_mon+1) < 10 ? "0" : "") + std::to_string(ptm->tm_mon+1) + "/" + (ptm->tm_mday < 10 ? "0" : "") + std::to_string(ptm->tm_mday) + "/" + std::to_string(ptm->tm_year+1900);
-		dates.push_back(std::make_pair(yesterdaystr, std::nullopt));
+		std::stringstream yesterdaystr;
+		yesterdaystr << ((ptm->tm_mon+1) < 10 ? "0" : "") << (ptm->tm_mon+1) << "/" << (ptm->tm_mday < 10 ? "0" : "") << ptm->tm_mday << "/" << (ptm->tm_year+1900);
+		//std::string yesterdaystr = ((ptm->tm_mon+1) < 10 ? "0" : "") + std::to_string(ptm->tm_mon+1) + "/" + (ptm->tm_mday < 10 ? "0" : "") + std::to_string(ptm->tm_mday) + "/" + std::to_string(ptm->tm_year+1900);
+		dates.push_back(std::make_pair(yesterdaystr.str(), std::nullopt));
 	}
 
 	ThreadSafeMap<std::string, int> gameIds;
